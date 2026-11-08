@@ -16,8 +16,10 @@ jobs:
         run: |
           mkdir -p www assets
           cp index.html www/index.html
-          cp icon-only.png assets/icon-only.png
           npm install
+          npm install --no-save sharp
+          f=$(ls IMG_* | head -n 1)
+          node -e "require('sharp')(process.argv[1]).resize(1024,1024,{fit:'cover'}).png().toFile('assets/icon-only.png').then(()=>console.log('icon ok'))" "$f"
           npx cap add android
           npm run icons
           npx cap sync android
