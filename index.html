@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6C3BAA">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Kumo Watch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Noto+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: phone-first app shell. Sticky header, hero banner, snap-scrolling poster rows, poster grids, bottom tab bar, bottom sheet for details. Every title carries a Hindi-dub badge. */
+:root{
+  --bg:#F8F5FC;
+  --surface:#FFFFFF;
+  --surface2:#EEE8F6;
+  --fg:#1F1830;
+  --muted:#675C7C;
+  --line:#DDD3EC;
+  --accent:#6C3BAA;
+  --accent-fg:#FFFFFF;
+  --font-display:"Bricolage Grotesque","Noto Sans",system-ui,sans-serif;
+  --font-body:"Noto Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#110D1B;--surface:#1B1528;--surface2:#261E38;--fg:#F1ECFA;--muted:#A99FC0;--line:#342A4D;--accent:#B99BFF;--accent-fg:#1C0B33;color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#110D1B;--surface:#1B1528;--surface2:#261E38;--fg:#F1ECFA;--muted:#A99FC0;--line:#342A4D;--accent:#B99BFF;--accent-fg:#1C0B33;color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 calc(96px + env(safe-area-inset-bottom,0px));
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1100px;margin:0 auto}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3,p{margin:0}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);display:flex;align-items:center;gap:8px;padding-block:12px}
+.logo{font-family:var(--font-display);font-weight:800;font-size:24px;letter-spacing:-.02em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.logo img{display:block;width:40px;height:40px;border-radius:10px}
+.iconbtn{display:inline-flex;align-items:center;gap:6px;height:40px;min-width:40px;justify-content:center;border-radius:20px;background:var(--surface2);padding:0 10px;font-weight:600;font-size:13px}
+
+/* hero */
+.hero{position:relative;border-radius:20px;overflow:hidden;aspect-ratio:16/11;min-height:250px;max-height:440px;background:var(--surface2)}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity .5s;pointer-events:none;color:#fff;background:linear-gradient(150deg,hsl(var(--h1) 58% 40%),hsl(var(--h2) 62% 14%))}
+.slide.on{opacity:1;pointer-events:auto}
+.slide::before{content:"";position:absolute;width:70%;aspect-ratio:1;border-radius:50%;right:-12%;top:-30%;background:radial-gradient(circle at 35% 35%,hsl(var(--h1) 80% 70% / .5),transparent 65%)}
+.slide::after{content:"";position:absolute;inset:auto 0 0 0;height:70%;background:linear-gradient(transparent,rgba(8,4,14,.72))}
+.sc{position:absolute;z-index:1;left:20px;right:20px;bottom:36px;display:flex;flex-direction:column;gap:8px;max-width:560px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.18)}
+.tag.dub{background:var(--accent);color:var(--accent-fg)}
+.slide h2{font-family:var(--font-display);font-weight:800;font-size:clamp(26px,6vw,42px);line-height:1.08;letter-spacing:-.02em;text-wrap:balance}
+.slide .meta{font-size:13px;opacity:.92}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:42px;padding:0 18px;border-radius:21px;font-weight:700;font-size:14px;text-decoration:none;border:1.5px solid transparent}
+.btn.pri{background:var(--accent);color:var(--accent-fg)}
+.btn.sec{background:rgba(255,255,255,.18);color:#fff}
+.btn.ghost{border-color:var(--line);color:var(--fg)}
+.btn.soft{background:var(--surface2);color:var(--fg)}
+.dots{position:absolute;z-index:2;right:16px;bottom:14px;display:flex;gap:6px}
+.dots button{width:8px;height:8px;border-radius:4px;background:rgba(255,255,255,.4);transition:width .25s}
+.dots button.on{width:22px;background:#fff}
+
+/* chips */
+.chips{display:flex;gap:8px;overflow-x:auto;padding-block:16px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:36px;padding:0 16px;border-radius:18px;background:var(--surface2);font-weight:600;font-size:14px}
+.chip.on{background:var(--accent);color:var(--accent-fg)}
+
+/* sections, rows, grids */
+.sec-h{font-family:var(--font-display);font-weight:800;font-size:20px;letter-spacing:-.01em;margin:24px 0 12px}
+.row{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity;scrollbar-width:none}
+.row::-webkit-scrollbar{display:none}
+.row .card{flex:none;width:132px;scroll-snap-align:start}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:18px 12px;margin-top:16px}
+.card{position:relative;min-width:0}
+.open{display:block;width:100%;text-align:left;border-radius:12px}
+.cmeta{display:flex;align-items:flex-start;gap:6px;margin-top:8px}
+.cmeta>div{min-width:0;flex:1}
+.ct{font-size:13.5px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cm{font-size:12px;color:var(--muted)}
+.save{flex:none;width:30px;height:30px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center}
+.save .ic{width:16px;height:16px}
+.save[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+
+/* generated poster art */
+.poster{position:relative;aspect-ratio:2/3;border-radius:12px;overflow:hidden;color:#fff;container-type:inline-size;background:linear-gradient(165deg,hsl(var(--h1) 58% 40%),hsl(var(--h2) 62% 14%))}
+.poster::before{content:"";position:absolute;width:95%;aspect-ratio:1;border-radius:50%;right:-28%;top:-10%;background:radial-gradient(circle at 35% 35%,hsl(var(--h1) 80% 70% / .55),transparent 65%)}
+.poster::after{content:"";position:absolute;inset:auto 0 0 0;height:60%;background:linear-gradient(transparent,rgba(0,0,0,.62))}
+.pb{position:absolute;z-index:1;top:8cqw;left:8cqw;font-size:7.5cqw;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2cqw 4cqw;border-radius:2cqw;background:var(--accent);color:var(--accent-fg)}
+.pa{position:absolute;z-index:1;top:8cqw;right:8cqw;font-size:7.5cqw;font-weight:800;padding:2cqw 4cqw;border-radius:2cqw;background:rgba(10,6,16,.72);color:#fff;border:.4cqw solid rgba(255,255,255,.55)}
+.pa.a18{background:#B3261E;border-color:#fff}
+.pt{position:absolute;z-index:1;left:8cqw;right:8cqw;bottom:8cqw;font-family:var(--font-display);font-weight:800;font-size:13cqw;line-height:1.1;letter-spacing:-.01em;text-wrap:balance;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+
+/* states */
+.empty{display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;color:var(--muted);padding:64px 16px}
+.empty .ic{width:40px;height:40px}
+.sbox{display:flex;align-items:center;gap:10px;height:48px;border-radius:24px;background:var(--surface2);padding:0 16px;margin-top:4px}
+.sbox input{flex:1;min-width:0;border:0;background:none;color:var(--fg);font:inherit;font-size:16px;outline:0}
+.sbox:focus-within{outline:2px solid var(--accent)}
+
+/* bottom tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.tabs-in{display:grid;grid-template-columns:repeat(4,1fr);max-width:560px;margin:0 auto}
+.tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;font-size:11.5px;font-weight:600;color:var(--muted);min-width:0}
+.tab span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab[aria-current="page"]{color:var(--accent)}
+
+/* detail sheet */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(10,6,16,.62);display:flex;align-items:flex-end;justify-content:center}
+.panel{background:var(--surface);color:var(--fg);width:100%;max-width:560px;max-height:88%;overflow:auto;border-radius:20px 20px 0 0;padding:20px max(16px,env(safe-area-inset-left,0px)) calc(24px + env(safe-area-inset-bottom,0px))}
+.panel-h{display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px}
+.xbtn{width:36px;height:36px;border-radius:50%;background:var(--surface2);display:inline-flex;align-items:center;justify-content:center;flex:none}
+.d-top{display:flex;gap:16px;align-items:flex-start}
+.d-top .poster{width:112px;flex:none}
+.d-info{min-width:0;display:flex;flex-direction:column;gap:6px}
+.d-info h2{font-family:var(--font-display);font-weight:800;font-size:22px;line-height:1.15;letter-spacing:-.01em}
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--surface2)}
+.pill.age{border:1.5px solid var(--muted)}
+.agebar{display:flex;align-items:center;gap:8px;overflow-x:auto;padding-block:4px 0;scrollbar-width:none}
+.agebar::-webkit-scrollbar{display:none}
+.agebar b{flex:none;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.chip.sm{height:30px;padding:0 12px;font-size:13px}
+.pill.dub{background:var(--accent);color:var(--accent-fg)}
+.d-syn{margin-top:16px;max-width:65ch}
+.d-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.d-h{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.dubs{display:grid;gap:8px}
+.dubrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;background:var(--surface2);text-decoration:none}
+.dubrow div{min-width:0}
+.dubrow strong{display:block;font-size:14px}
+.dubrow span{font-size:13px;color:var(--muted)}
+.dubrow .ic{width:18px;height:18px;color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin-top:12px;max-width:65ch}
+
+@media (min-width:700px){
+  .row .card{width:160px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .sc{left:36px;bottom:44px}
+  .scrim{align-items:center}
+  .panel{border-radius:20px;max-height:84%}
+}
+@media (prefers-reduced-motion:reduce){.slide,.dots button{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><img src="data:image/jpeg;base64,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" alt="" width="40" height="40">Kumo</div>
+    <button class="iconbtn" id="btn-search" type="button" aria-label="Search"></button>
+  </header>
+  <main id="app"></main>
+</div>
+<nav class="tabs" aria-label="Main"><div class="tabs-in" id="tabs"></div></nav>
+<div class="scrim" id="scrim" hidden><div class="panel" id="panel" role="dialog" aria-modal="true"></div></div>
+
+<script>
+(function(){
+"use strict";
+
+/* Only titles with an official Hindi dub named in at least two public listings (checked Nov 2026). */
+var GENRE={romance:"Romance",fantasy:"Fantasy",action:"Action",comedy:"Comedy",drama:"Drama",adventure:"Adventure"};
+var LINKS={"Crunchyroll":"https://www.crunchyroll.com/search?q=","Netflix":"https://www.netflix.com/search?q="};
+var ITEMS=[
+{id:"cloy",kind:"K-Drama",t:"Crash Landing on You",y:2019,g:["romance","comedy"],h:[345,262],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A South Korean heiress lands in North Korea after a paragliding accident, and an army captain hides her."},
+{id:"queen",kind:"K-Drama",t:"Queen of Tears",y:2024,g:["romance","drama"],h:[330,285],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A married couple on the brink of divorce rediscover each other when a crisis hits."},
+{id:"proposal",kind:"K-Drama",t:"Business Proposal",y:2022,g:["romance","comedy"],h:[8,320],dub:[["Netflix","Hindi audio on Netflix India"]],s:"An employee goes on a blind date in her friend's place and finds her boss across the table."},
+{id:"vincenzo",kind:"K-Drama",t:"Vincenzo",y:2021,g:["drama","comedy"],h:[48,12],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A Korean-born Italian mafia lawyer returns to Seoul and teams up with a sharp attorney to take on a ruthless conglomerate."},
+{id:"king",kind:"K-Drama",t:"The King: Eternal Monarch",y:2020,g:["fantasy","romance"],h:[225,262],dub:[["Netflix","Hindi audio on Netflix India"]],s:"The emperor of a parallel Korean empire crosses into modern Seoul and meets a determined detective."},
+{id:"okay",kind:"K-Drama",t:"It's Okay to Not Be Okay",y:2020,g:["drama","romance"],h:[160,205],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A caregiver at a psychiatric hospital and a children's book author help each other heal."},
+{id:"doona",kind:"K-Drama",t:"Doona!",y:2023,g:["romance","drama"],h:[300,340],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A former K-pop idol moves next door to a shy college student, and an unlikely friendship begins."},
+{id:"demon",kind:"Anime",t:"Demon Slayer",y:2019,g:["action","fantasy"],h:[160,200],dub:[["Crunchyroll","Several seasons and arcs"],["Netflix","Season 1 and the Infinity Castle film"],["Amazon MX Player","Season 1"]],s:"After demons attack his family, Tanjiro trains as a demon slayer to cure his sister."},
+{id:"jjk",kind:"Anime",t:"Jujutsu Kaisen",y:2020,g:["action","fantasy"],h:[255,300],dub:[["Crunchyroll","Seasons 1 and 2, Season 3 listed"],["Sony YAY! (TV)","Season 1, separate dub"]],s:"A student swallows a cursed object and joins a school of sorcerers to fight curses."},
+{id:"spy",kind:"Anime",t:"Spy x Family",y:2022,g:["comedy","action"],h:[145,95],dub:[["Crunchyroll","Seasons 1 to 3"],["Amazon MX Player","Seasons 1 and 2"],["Muse India (YouTube)","Seasons 1 and 2"]],s:"A spy, an assassin and a telepathic girl pose as a family to complete a secret mission."},
+{id:"haikyu",kind:"Anime",t:"Haikyu!!",y:2014,g:["drama","comedy"],h:[24,10],dub:[["Crunchyroll","Seasons 1 to 4"]],s:"A short volleyball player and his rival-turned-teammate chase a national title."},
+{id:"fma",kind:"Anime",t:"Fullmetal Alchemist: Brotherhood",y:2009,g:["adventure","fantasy"],h:[40,5],dub:[["Crunchyroll","Full series, rolling out through 2026"]],s:"Two brothers search for the Philosopher's Stone to restore the bodies they lost to a failed alchemy ritual."},
+{id:"yourname",kind:"Anime",t:"Your Name.",y:2016,g:["romance","fantasy"],h:[285,330],dub:[["Crunchyroll","The film"]],s:"Two teenagers who swap bodies in their dreams try to find each other across distance and time."},
+{id:"spirited",kind:"Anime",t:"Spirited Away",y:2001,g:["fantasy","adventure"],h:[175,230],dub:[["Netflix","The film"]],s:"A girl wanders into a spirit world and works at a bathhouse to free her parents."},
+{id:"onepiece",kind:"Anime",t:"One Piece",y:1999,g:["adventure","action"],h:[0,230],dub:[["Crunchyroll","Egghead arc onward"],["Cartoon Network India (TV)","Wano arc"]],s:"A rubber-bodied pirate and his crew sail the Grand Line in search of the ultimate treasure."},
+{id:"naruto",kind:"Anime",t:"Naruto Shippuden",y:2007,g:["action","adventure"],h:[28,215],dub:[["Crunchyroll","Rolling out in batches"]],s:"Now a teenager, Naruto returns to his ninja village and faces a criminal group hunting the beasts sealed inside people like him."},
+{id:"sakamoto",kind:"Anime",t:"Sakamoto Days",y:2025,g:["action","comedy"],h:[355,255],dub:[["Netflix","Season 1"]],s:"A feared retired hitman runs a convenience store until his past catches up with him."},
+{id:"mha",kind:"Anime",t:"My Hero Academia",y:2016,g:["action","adventure"],h:[140,215],dub:[["Crunchyroll","Seasons 1 to 7"],["JioHotstar","Final season (Season 8)"],["Cartoon Network India (TV)","TV broadcast from 2023"]],s:"In a world where most people have superpowers, a boy born without one enrols at a top hero academy."},
+{id:"opm",kind:"Anime",t:"One Punch Man",y:2015,g:["action","comedy"],h:[50,350],dub:[["Crunchyroll","Seasons 1 to 3"],["Sony YAY! (TV)","Season 3 on TV"]],s:"A hero who can beat any enemy with one punch struggles with boredom while fighting monsters."},
+{id:"assassin",kind:"Anime",t:"Assassination Classroom",y:2015,g:["comedy","action"],h:[55,30],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A class of misfits is tasked with assassinating their alien teacher before he destroys the Earth."},
+{id:"narutoc",kind:"Anime",t:"Naruto",y:2002,g:["action","adventure"],h:[32,200],dub:[["Crunchyroll","All 220 episodes"],["Sony YAY! (TV)","Naruto and Shippuden on TV"]],s:"An outcast young ninja dreams of becoming the leader of his village."},
+{id:"sao",kind:"Anime",t:"Sword Art Online",y:2012,g:["fantasy","adventure"],h:[210,180],dub:[["Crunchyroll","Season 1"]],s:"Players trapped in a virtual reality game must clear it to escape."},
+{id:"geass",kind:"Anime",t:"Code Geass",y:2006,g:["action","drama"],h:[285,355],dub:[["Crunchyroll","Season 1"]],s:"An exiled prince gains a mysterious power and leads a rebellion against a world empire."},
+{id:"drstone",kind:"Anime",t:"Dr. Stone",y:2019,g:["adventure","comedy"],h:[130,185],dub:[["Crunchyroll","Seasons 1 to 4 listed"]],s:"A science-loving teenager wakes thousands of years after humanity turned to stone and sets out to rebuild civilisation."},
+{id:"konosuba",kind:"Anime",t:"KonoSuba",y:2016,g:["comedy","fantasy"],h:[190,40],dub:[["Crunchyroll","Seasons 1 to 3 listed"]],s:"A teenager reborn in a fantasy world forms a chaotic adventuring party with a useless goddess and two eccentric companions."},
+{id:"clover",kind:"Anime",t:"Black Clover",y:2017,g:["action","fantasy"],h:[240,150],dub:[["Crunchyroll","Season 1"]],s:"A boy born without magic in a world of mages vows to become the Wizard King."},
+{id:"slime",kind:"Anime",t:"That Time I Got Reincarnated as a Slime",y:2018,g:["fantasy","adventure"],h:[195,225],dub:[["Crunchyroll","Seasons 1 to 4 listed"]],s:"A man reborn as a slime gathers allies and builds a nation of monsters."},
+{id:"shield",kind:"Anime",t:"The Rising of the Shield Hero",y:2019,g:["fantasy","adventure"],h:[215,270],dub:[["Crunchyroll","Seasons 1 to 4 listed"]],s:"A summoned hero is falsely accused and left with only a shield, and fights to clear his name."},
+{id:"horimiya",kind:"Anime",t:"Horimiya",y:2021,g:["romance","comedy"],h:[350,25],dub:[["Crunchyroll","Horimiya series"]],s:"Two high-schoolers who hide their other sides at school grow close."},
+{id:"magus",kind:"Anime",t:"The Ancient Magus' Bride",y:2017,g:["fantasy","drama"],h:[150,255],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A girl with nowhere to go is taken in by a mage who makes her his apprentice and bride."},
+{id:"weathering",kind:"Anime",film:1,t:"Weathering with You",y:2019,g:["romance","fantasy"],h:[205,305],dub:[["Crunchyroll","The film"]],s:"A runaway teenager meets a girl who can control the weather in rainy Tokyo."},
+{id:"kiki",kind:"Anime",film:1,t:"Kiki's Delivery Service",y:1989,g:["fantasy","adventure"],h:[165,200],dub:[["Netflix","The film"]],s:"A young witch moves to a seaside town and starts a delivery service."},
+{id:"totoro",kind:"Anime",film:1,t:"My Neighbor Totoro",y:1988,g:["fantasy","adventure"],h:[120,170],dub:[["Netflix","The film"]],s:"Two sisters move to the countryside and meet gentle forest spirits."},
+{id:"mononoke",kind:"Anime",film:1,t:"Princess Mononoke",y:1997,g:["fantasy","adventure"],h:[100,160],dub:[["Netflix","The film"]],s:"A young prince is caught between the gods of the forest and an iron-making town."},
+{id:"howl",kind:"Anime",film:1,t:"Howl's Moving Castle",y:2004,g:["fantasy","romance"],h:[220,320],dub:[["Netflix","The film"]],s:"A young woman cursed to look old finds shelter in a wizard's moving castle."},
+{id:"daima",kind:"Anime",t:"Dragon Ball Daima",y:2024,g:["action","adventure"],h:[35,12],dub:[["Crunchyroll","Dragon Ball Daima"]],s:"Goku and friends are turned into children and journey to the Demon Realm."},
+{id:"mashle",kind:"Anime",t:"Mashle: Magic and Muscles",y:2023,g:["comedy","fantasy"],h:[45,230],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A boy with no magic but enormous strength enrols at a school of magic."},
+{id:"hanako",kind:"Anime",t:"Toilet-bound Hanako-kun",y:2020,g:["comedy","fantasy"],h:[270,200],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A student who wants her wish granted summons the ghost of a school toilet."},
+{id:"yuri",kind:"Anime",t:"Yuri!!! on Ice",y:2016,g:["drama","romance"],h:[205,330],dub:[["Crunchyroll","Full series"]],s:"A figure skater who lost a major competition gets coached by his idol."},
+{id:"relife",kind:"Anime",t:"ReLIFE",y:2016,g:["romance","comedy"],h:[175,25],dub:[["Crunchyroll","Season 1"]],s:"A jobless 27-year-old takes a pill that makes him look 17 and goes back to high school."},
+{id:"loghorizon",kind:"Anime",t:"Log Horizon",y:2013,g:["fantasy","adventure"],h:[230,175],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"Thousands of players trapped in an online game world build a society of their own."},
+{id:"rok",kind:"Anime",t:"Ranking of Kings",y:2021,g:["fantasy","adventure"],h:[60,300],dub:[["Crunchyroll","Season 1"]],s:"A deaf prince dreams of becoming the world's greatest king."},
+{id:"gundam",kind:"Anime",t:"Mobile Suit Gundam: The Witch from Mercury",y:2022,g:["action","drama"],h:[205,10],dub:[["Crunchyroll","Season 1"]],s:"A transfer student at a mobile-suit academy gets pulled into duels and corporate politics."},
+{id:"raeliana",kind:"Anime",t:"Why Raeliana Ended Up at the Duke's Mansion",y:2023,g:["romance","fantasy"],h:[320,10],dub:[["Crunchyroll","Season 1"]],s:"A woman reborn in a novel's world seeks shelter at a duke's mansion to avoid her fate."},
+{id:"otome",kind:"Anime",t:"Trapped in a Dating Sim",y:2022,g:["fantasy","comedy"],h:[290,40],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A man reborn in a dating-game world finds life hard for ordinary background characters."},
+{id:"villainess",kind:"Anime",t:"I'm in Love with the Villainess",y:2023,g:["romance","fantasy"],h:[340,260],dub:[["Crunchyroll","Season 1"]],s:"A woman reborn in her favourite dating game falls for its villainess and tries to befriend her."},
+{id:"vanitas",kind:"Anime",t:"The Case Study of Vanitas",y:2021,g:["fantasy","drama"],h:[250,320],dub:[["Crunchyroll","Season 1"]],s:"A vampire meets a human who claims to hold a book that can cure vampires, in an alternate 19th-century Paris."},
+{id:"buddy",kind:"Anime",t:"Buddy Daddies",y:2023,g:["comedy","action"],h:[20,200],dub:[["Crunchyroll","Season 1"]],s:"Two roommates who work as assassins end up raising a little girl."},
+{id:"tomo",kind:"Anime",t:"Tomo-chan Is a Girl!",y:2023,g:["romance","comedy"],h:[10,330],dub:[["Crunchyroll","Season 1"]],s:"A tomboy tries to tell her childhood friend how she really feels."},
+{id:"lovely",kind:"K-Drama",t:"Lovely Runner",y:2024,g:["romance","fantasy"],h:[285,340],dub:[["Amazon MX Player","Hindi dub announced, free with ads"]],s:"A devoted fan travels back in time to save her favourite star."},
+{id:"liar",kind:"K-Drama",t:"My Lovely Liar",y:2023,g:["romance","fantasy"],h:[320,220],dub:[["Amazon MX Player","Hindi dub announced, free with ads"]],s:"A woman who can sense lies meets a man who has made lying a habit."},
+{id:"watermelon",kind:"K-Drama",t:"Twinkling Watermelon",y:2023,g:["fantasy","drama"],h:[150,200],dub:[["Amazon MX Player","Hindi dub announced, free with ads"]],s:"A teenager is sent back to 1995 and meets his father as a teenager."},
+{id:"wedding",kind:"K-Drama",t:"Wedding Impossible",y:2024,g:["romance","comedy"],h:[355,300],dub:[["Amazon MX Player","Hindi dub announced, free with ads"]],s:"A Korean romantic comedy series."},
+{id:"bokjoo",kind:"K-Drama",t:"Weightlifting Fairy Kim Bok-joo",y:2016,g:["romance","comedy"],h:[190,145],dub:[["Amazon MX Player","Hindi dubbed, per Amazon India"]],s:"A young weightlifter at a sports college falls for a swimmer from her school."},
+{id:"woo",kind:"K-Drama",t:"Extraordinary Attorney Woo",y:2022,g:["drama","comedy"],h:[200,250],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A brilliant young lawyer with autism takes on unusual cases at a Seoul law firm."},
+{id:"jojo",kind:"Anime",t:"JoJo's Bizarre Adventure",y:2012,g:["action","adventure"],h:[300,45],dub:[["Muse India (YouTube)","Phantom Blood to Diamond Is Unbreakable"],["Amazon MX Player","Season 1"]],s:"Generations of the Joestar family battle supernatural enemies using strange powers."},
+{id:"fireforce",kind:"Anime",t:"Fire Force",y:2019,g:["action","fantasy"],h:[15,350],dub:[["Crunchyroll","Seasons 1 to 3 listed"]],s:"A boy who can ignite his feet joins a special fire brigade that battles people who burst into flame."},
+{id:"akebi",kind:"Anime",t:"Akebi's Sailor Uniform",y:2022,g:["drama","comedy"],h:[185,320],dub:[["Crunchyroll","Season 1"]],s:"A girl enters the prestigious school whose sailor uniform she has admired for years."},
+{id:"masamune",kind:"Anime",t:"Masamune-kun's Revenge",y:2017,g:["romance","comedy"],h:[345,215],dub:[["Crunchyroll","Listed on Crunchyroll"]],s:"A boy who was cruelly rejected as a child becomes handsome and plots revenge on the girl."},
+{id:"immortal",kind:"Anime",t:"The Daily Life of the Immortal King",y:2020,g:["comedy","fantasy"],h:[165,285],dub:[["Crunchyroll","Seasons 1 to 5 listed"]],s:"A teenager who is secretly a powerful immortal tries to live an ordinary school life."},
+{id:"saitou",kind:"Anime",t:"Handyman Saitou in Another World",y:2022,g:["comedy","fantasy"],h:[95,30],dub:[["Crunchyroll","Season 1"]],s:"A handyman is summoned to another world and puts his repair skills to use."},
+{id:"aoud",kind:"K-Drama",t:"All of Us Are Dead",y:2022,g:["action","drama"],h:[0,350],dub:[["Netflix","Hindi audio on Netflix India"]],s:"Students trapped in their high school fight to survive when a zombie virus spreads. Mature: contains violence."},
+{id:"bleach",kind:"Anime",t:"Bleach: Thousand-Year Blood War",y:2022,g:["action","fantasy"],h:[28,262],dub:[["JioHotstar","Parts 1 to 4, The Calamity listed"]],s:"Ichigo and the Soul Reapers face a sudden invasion that threatens the whole Soul Society."},
+{id:"rezero",kind:"Anime",t:"Re:ZERO -Starting Life in Another World-",y:2016,g:["fantasy","drama"],h:[275,210],dub:[["Crunchyroll","Season 4"],["Amazon MX Player","Season 1"]],s:"A shut-in is summoned to a fantasy world and gains the power to return from death."},
+{id:"dbshero",kind:"Anime",film:1,t:"Dragon Ball Super: Super Hero",y:2022,g:["action","adventure"],h:[22,225],dub:[["Crunchyroll","The film"]],s:"Gohan and Piccolo face the new Red Ribbon Army and its android heroes."},
+{id:"dbsuper",kind:"Anime",t:"Dragon Ball Super",y:2015,g:["action","adventure"],h:[38,5],dub:[["Cartoon Network India (TV)","Dragon Ball and Dragon Ball Super on TV"],["Discovery+","Dragon Ball Z Kai"]],s:"Goku and his friends face gods of destruction and fighters from other universes."},
+{id:"squid",kind:"K-Drama",t:"Squid Game",y:2021,g:["action","drama"],h:[340,320],dub:[["Netflix","Hindi audio on Netflix India"]],s:"Cash-strapped contestants play deadly children's games for a huge prize. Mature: contains violence."},
+{id:"mydemon",kind:"K-Drama",t:"My Demon",y:2023,g:["romance","fantasy"],h:[355,285],dub:[["Netflix","Hindi audio on Netflix India"]],s:"A powerful demon loses his abilities and enters a contract marriage with a hard-headed heiress."},
+{id:"wonderfools",kind:"K-Drama",t:"The Wonderfools",y:2026,g:["action","fantasy"],h:[205,285],dub:[["Netflix","Hindi audio reported on Netflix India"]],s:"A group of ordinary people in a small town gain unexpected superpowers."},
+{id:"weakhero",kind:"K-Drama",t:"Weak Hero Class",y:2022,g:["action","drama"],h:[215,260],dub:[["Netflix","Hindi audio reported on Netflix India"]],s:"A smart, slight student uses his wits to take on bullies at his new high school. Mature: contains violence."},
+{id:"kingdom",kind:"K-Drama",t:"Kingdom",y:2019,g:["action","drama"],h:[5,300],dub:[["Netflix","Hindi audio reported on Netflix India"]],s:"A crown prince investigates a mysterious plague that turns the dead into flesh-hungry creatures. Mature: contains violence."},
+{id:"itaewon",kind:"K-Drama",t:"Itaewon Class",y:2020,g:["drama","romance"],h:[15,255],dub:[["Netflix","Hindi audio reported on Netflix India"]],s:"An ex-convict opens a small restaurant in Itaewon and sets out to take down a food empire."},
+{id:"dandadan",kind:"Anime",t:"Dan Da Dan",y:2024,g:["action","comedy"],h:[310,25],dub:[["Crunchyroll","Seasons 1 and 2"]],s:"A girl who believes in ghosts and a boy who believes in aliens are both proved right."},
+{id:"baki",kind:"Anime",t:"Baki Hanma",y:2021,g:["action"],h:[355,5],dub:[["Netflix","Seasons 1 and 2 plus earlier Baki series"]],s:"The strongest fighters in the world battle to prove who is the toughest. Mature: contains violence."},
+{id:"dungeon",kind:"Anime",t:"Delicious in Dungeon",y:2024,g:["fantasy","comedy"],h:[135,180],dub:[["Netflix","Season 1"]],s:"Adventurers who lost their party member decide to cook and eat the monsters in a dungeon."},
+{id:"suzume",kind:"Anime",film:1,t:"Suzume",y:2022,g:["fantasy","adventure"],h:[205,330],dub:[["Crunchyroll","The film"]],s:"A teenager closes mysterious doors across Japan that release disasters."},
+{id:"ramparts",kind:"Anime",t:"The Ramparts of Ice",y:2024,g:["romance","drama"],h:[200,275],dub:[["Netflix","Seasons 1 and 2"]],s:"A shy girl and a boy with a cold exterior grow closer at high school."},
+{id:"bluebox",kind:"Anime",t:"Blue Box",y:2024,g:["romance","drama"],h:[210,180],dub:[["Netflix","Seasons 1 and 2"]],s:"A badminton player falls for an older girl on the basketball team, who starts living in his house."},
+{id:"ranma",kind:"Anime",t:"Ranma 1/2",y:2024,g:["comedy","action"],h:[345,235],dub:[["Netflix","Seasons 1 to 3"]],s:"A martial artist who turns into a girl when splashed with cold water is dragged into a chaotic engagement."},
+{id:"hathaway",kind:"Anime",film:1,t:"Mobile Suit Gundam Hathaway",y:2021,g:["action","drama"],h:[225,10],dub:[["Netflix","The film"]],s:"A young pilot turns terrorist and fights the Earth Federation in a world of mobile suits."},
+{id:"campfire",kind:"Anime",t:"Campfire Cooking in Another World",y:2023,g:["fantasy","comedy"],h:[85,150],dub:[["Crunchyroll","Season 2 listed"]],s:"A man summoned to another world uses a special skill to buy ingredients from Earth and cook for his monster companion."},
+{id:"mushoku",kind:"Anime",t:"Mushoku Tensei: Jobless Reincarnation",y:2021,g:["fantasy","adventure"],h:[255,60],dub:[["Crunchyroll","Seasons 1 to 3 listed"]],s:"A man reborn as a boy in a fantasy world decides to live his second life without regrets."}
+];
+var AGE={totoro:7,kiki:7,spirited:7,howl:7,squid:18,kingdom:18,baki:18,aoud:18,weakhero:18,mushoku:18,vincenzo:16,mydemon:16,wonderfools:16,itaewon:16,jjk:16,demon:16,sakamoto:16,opm:16,geass:16,konosuba:16,slime:16,shield:16,vanitas:16,buddy:16,jojo:16,fireforce:16,bleach:16,rezero:16,dandadan:16,hathaway:16,cloy:13,queen:13,proposal:13,king:13,okay:13,doona:13,spy:13,haikyu:13,fma:13,yourname:13,onepiece:13,naruto:13,mha:13,assassin:13,narutoc:13,sao:13,drstone:13,clover:13,horimiya:13,magus:13,weathering:13,mononoke:13,daima:13,mashle:13,hanako:13,yuri:13,relife:13,loghorizon:13,rok:13,gundam:13,raeliana:13,otome:13,villainess:13,tomo:13,lovely:13,liar:13,watermelon:13,wedding:13,bokjoo:13,woo:13,akebi:13,masamune:13,immortal:13,saitou:13,dbshero:13,dbsuper:13,dungeon:13,suzume:13,ramparts:13,bluebox:13,ranma:13,campfire:13};
+ITEMS.forEach(function(i){i.age=AGE[i.id]||13;});
+var FREE=["Amazon MX Player","Muse India (YouTube)","Ani-One India (YouTube)"];
+function isFree(it){return it.dub.some(function(d){return FREE.indexOf(d[0])>-1;});}
+var BY={};ITEMS.forEach(function(i){BY[i.id]=i;});
+var HERO=["queen","demon","lovely","spy"];
+var ALL=ITEMS;
+
+/* ---------- state ---------- */
+var state={view:"home",chip:"all",saved:[],q:"",age:99};
+function VIS(){return ALL.filter(function(i){return i.age<=state.age;});}
+function heroIds(){var v=HERO.filter(function(id){return BY[id].age<=state.age;});return v.length?v:VIS().slice(0,3).map(function(i){return i.id;});}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+try{var sa=parseInt(lsGet("kumo.age"),10);if(sa===7||sa===13||sa===16)state.age=sa;}catch(e){}
+try{var sv=JSON.parse(lsGet("kumo.list")||"[]");if(Array.isArray(sv))state.saved=sv.filter(function(id){return BY[id];});}catch(e){}
+function isSaved(id){return state.saved.indexOf(id)>-1;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+
+/* ---------- icons ---------- */
+var P={
+home:'<path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>',
+kdrama:'<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/>',
+anime:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 16l.7 2.3L22 19l-2.3.7L19 22l-.7-2.3L16 19l2.3-.7z"/>',
+mylist:'<path d="M6 4h12v17l-6-4-6 4z"/>',
+search:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+plus:'<path d="M12 5v14M5 12h14"/>',
+check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+play:'<path d="M8 5.5v13l11-6.5z" fill="currentColor"/>',
+x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'
+};
+function ic(n){return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+P[n]+'</svg>';}
+
+/* ---------- pieces ---------- */
+function poster(it){
+  return '<div class="poster" style="--h1:'+it.h[0]+';--h2:'+it.h[1]+'"><span class="pb">Hindi dub</span><span class="pa'+(it.age>=18?' a18':'')+'">'+it.age+'+</span><span class="pt">'+esc(it.t)+'</span></div>';
+}
+function card(it){
+  var s=isSaved(it.id);
+  return '<article class="card"><button class="open" type="button" data-open="'+it.id+'" aria-label="'+esc(it.t)+'">'+poster(it)+'</button>'+
+    '<div class="cmeta"><div><h3 class="ct">'+esc(it.t)+'</h3><p class="cm">'+it.y+' · '+it.kind+'</p></div>'+
+    '<button class="save" type="button" data-save="'+it.id+'" aria-pressed="'+s+'" aria-label="'+(s?'In My List':'Add to My List')+'">'+ic(s?'check':'plus')+'</button></div></article>';
+}
+function chips(){
+  var list=[["all","All"],["f:free","Free"],["p:Netflix","Netflix"],["p:Crunchyroll","Crunchyroll"],["p:Amazon MX Player","MX Player"],["f:film","Films"]];
+  Object.keys(GENRE).forEach(function(g){list.push(["g:"+g,GENRE[g]]);});
+  var ages=[[99,"Any age"],[7,"Up to 7+"],[13,"Up to 13+"],[16,"Up to 16+"]];
+  return '<div class="chips" role="group">'+list.map(function(c){
+    return '<button class="chip'+(state.chip===c[0]?' on':'')+'" type="button" data-chip="'+c[0]+'">'+c[1]+'</button>';
+  }).join("")+'</div>'+
+  '<div class="agebar" role="group" aria-label="Age limit"><b>Age limit</b>'+ages.map(function(a){
+    return '<button class="chip sm'+(state.age===a[0]?' on':'')+'" type="button" data-age="'+a[0]+'">'+a[1]+'</button>';
+  }).join("")+'</div>';
+}
+function genreText(it){return it.g.map(function(g){return GENRE[g];}).join(" · ");}
+function platText(it){return it.dub.map(function(d){return d[0];}).join(", ");}
+function trailerUrl(it){return "https://www.youtube.com/results?search_query="+encodeURIComponent(it.t+" official trailer");}
+
+function hero(){
+  var HI=heroIds();
+  if(!HI.length)return "";
+  var h='<section class="hero" aria-roledescription="carousel">';
+  HI.forEach(function(id,i){
+    var it=BY[id];
+    h+='<div class="slide'+(i===0?' on':'')+'" data-slide="'+i+'" style="--h1:'+it.h[0]+';--h2:'+it.h[1]+'">'+
+    '<div class="sc"><div class="tags"><span class="tag dub">Hindi dub</span><span class="tag">'+it.kind+'</span><span class="tag">'+it.age+'+</span></div>'+
+    '<h2>'+esc(it.t)+'</h2><p class="meta">'+it.y+' · '+esc(genreText(it))+' · '+esc(platText(it))+'</p>'+
+    '<div class="acts"><a class="btn pri" href="'+trailerUrl(it)+'" target="_blank" rel="noopener noreferrer">'+ic('play')+'Watch trailer</a>'+
+    '<button class="btn sec" type="button" data-open="'+id+'">Details</button></div></div></div>';
+  });
+  h+='<div class="dots">';
+  HI.forEach(function(id,i){h+='<button type="button" data-dot="'+i+'" class="'+(i===0?'on':'')+'" aria-label="Slide '+(i+1)+'"></button>';});
+  return h+'</div></section>';
+}
+
+function matches(it){
+  var c=state.chip;
+  if(c==="all")return true;
+  if(c.indexOf("g:")===0)return it.g.indexOf(c.slice(2))>-1;
+  if(c.indexOf("p:")===0)return it.dub.some(function(d){return d[0]===c.slice(2);});
+  if(c==="f:film")return !!it.film;
+  if(c==="f:free")return isFree(it);
+  return true;
+}
+function filtered(kind){return VIS().filter(function(i){return (!kind||i.kind===kind)&&matches(i);});}
+function gridOf(list){
+  return list.length?'<div class="grid">'+list.map(card).join("")+'</div>':'<div class="empty"><p>No titles match.</p></div>';
+}
+function rowOf(title,list){return '<h2 class="sec-h">'+title+'</h2><div class="row">'+list.map(card).join("")+'</div>';}
+function byPlat(p){return VIS().filter(function(i){return i.dub.some(function(d){return d[0]===p;});});}
+function pick(f,n){return VIS().filter(f).slice(0,n||16);}
+function hasG(i,gs){return gs.some(function(g){return i.g.indexOf(g)>-1;});}
+
+/* ---------- views ---------- */
+var timer=null;
+function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
+function startTimer(){
+  stopTimer();
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+  timer=setInterval(function(){
+    var on=document.querySelector(".slide.on");if(!on)return;
+    go((+on.getAttribute("data-slide")+1)%document.querySelectorAll(".slide").length);
+  },6500);
+}
+function go(i){
+  document.querySelectorAll(".slide").forEach(function(s){s.classList.toggle("on",+s.getAttribute("data-slide")===i);});
+  document.querySelectorAll("[data-dot]").forEach(function(d){d.classList.toggle("on",+d.getAttribute("data-dot")===i);});
+}
+function render(){
+  stopTimer();
+  var app=document.getElementById("app"),v=state.view,h="";
+  if(v==="home"){
+    h=hero()+chips();
+    if(state.chip==="all"){
+      h+=rowOf("Free to watch",VIS().filter(isFree))+
+         rowOf("K-Dramas in Hindi",pick(function(i){return i.kind==="K-Drama";}))+
+         rowOf("Action and adventure anime",pick(function(i){return i.kind==="Anime"&&!i.film&&hasG(i,["action","adventure"]);}))+
+         rowOf("Romance and comedy anime",pick(function(i){return i.kind==="Anime"&&hasG(i,["romance","comedy"]);}))+
+         rowOf("Fantasy worlds",pick(function(i){return i.kind==="Anime"&&!i.film&&hasG(i,["fantasy"]);}))+
+         rowOf("Anime films",pick(function(i){return !!i.film||i.id==="yourname"||i.id==="spirited";}))+
+         rowOf("On Netflix",byPlat("Netflix").slice(0,16))+
+         rowOf("On Crunchyroll",byPlat("Crunchyroll").slice(0,16))+
+         rowOf("On Amazon MX Player",byPlat("Amazon MX Player").slice(0,16));
+    }else h+=gridOf(filtered());
+  }else if(v==="kdrama"){
+    h=chips()+gridOf(filtered("K-Drama"));
+  }else if(v==="anime"){
+    h=chips()+gridOf(filtered("Anime"));
+  }else if(v==="mylist"){
+    var l=state.saved.map(function(id){return BY[id];}).filter(function(i){return i.age<=state.age;});
+    h=l.length?gridOf(l):'<div class="empty">'+ic('mylist')+'<p>Nothing saved yet. Tap the + on any title.</p></div>';
+  }else if(v==="search"){
+    h='<label class="sbox">'+ic('search')+'<input id="q" type="search" autocomplete="off" placeholder="Search titles" value="'+esc(state.q)+'"></label><div id="results"></div>';
+  }
+  app.innerHTML=h;
+  if(v==="search")results();
+  if(v==="home")startTimer();
+  chrome();
+}
+function results(){
+  var q=state.q.trim().toLowerCase(),box=document.getElementById("results");if(!box)return;
+  var list=q?VIS().filter(function(i){return i.t.toLowerCase().indexOf(q)>-1;}):VIS();
+  box.innerHTML=gridOf(list);
+}
+function chrome(){
+  var tabs=[["home","Home"],["kdrama","K-Drama"],["anime","Anime"],["mylist","My List"]];
+  document.getElementById("tabs").innerHTML=tabs.map(function(x){
+    return '<button class="tab" type="button" data-tab="'+x[0]+'"'+(state.view===x[0]?' aria-current="page"':'')+'>'+ic(x[0])+'<span>'+x[1]+'</span></button>';
+  }).join("");
+  document.getElementById("btn-search").innerHTML=ic('search');
+}
+
+/* ---------- detail sheet ---------- */
+var lastFocus=null;
+function openSheet(html){
+  lastFocus=document.activeElement;
+  document.getElementById("panel").innerHTML=html;
+  document.getElementById("scrim").hidden=false;
+  document.body.style.overflow="hidden";
+  var x=document.querySelector("#panel [data-close]");if(x)x.focus();
+}
+function closeSheet(){
+  document.getElementById("scrim").hidden=true;
+  document.body.style.overflow="";
+  if(lastFocus&&lastFocus.focus)try{lastFocus.focus();}catch(e){}
+}
+function detail(id){
+  var it=BY[id],q=encodeURIComponent(it.t),s=isSaved(id);
+  var pills='<span class="pill dub">Hindi dub</span><span class="pill age">Age '+it.age+'+</span>'+(isFree(it)?'<span class="pill">Free option</span>':'')+it.g.map(function(g){return '<span class="pill">'+GENRE[g]+'</span>';}).join("")+'<span class="pill">'+it.kind+'</span>';
+  var dubs=it.dub.map(function(d){
+    var link=LINKS[d[0]];
+    var inner='<div><strong>'+esc(d[0])+'</strong><span>'+esc(d[1])+'</span></div>';
+    return link?'<a class="dubrow" href="'+link+q+'" target="_blank" rel="noopener noreferrer">'+inner+ic('ext')+'</a>':'<div class="dubrow">'+inner+'</div>';
+  }).join("");
+  openSheet(
+    '<div class="panel-h"><button class="xbtn" type="button" data-close aria-label="Close">'+ic('x')+'</button></div>'+
+    '<div class="d-top">'+poster(it)+'<div class="d-info"><h2>'+esc(it.t)+'</h2><p class="cm">'+it.y+'</p><div class="pills">'+pills+'</div></div></div>'+
+    '<p class="d-syn">'+esc(it.s)+'</p>'+
+    '<div class="d-acts"><a class="btn pri" href="'+trailerUrl(it)+'" target="_blank" rel="noopener noreferrer">'+ic('play')+'Watch trailer</a>'+
+    '<button class="btn soft" type="button" data-save="'+id+'" data-wide="1" aria-pressed="'+s+'">'+ic(s?'check':'plus')+'<span>'+(s?'In My List':'Add to My List')+'</span></button></div>'+
+    '<h3 class="d-h">Hindi dub available on</h3><div class="dubs">'+dubs+'</div>'+
+    '<p class="note">Age guide: an estimate by Kumo based on content, not an official rating. Check the rating on the platform before children watch. Dub availability changes by platform and region. This was checked against public listings in November 2026. Confirm Hindi in the audio menu before you watch. Playback happens on the official service.</p>'
+  );
+}
+
+/* ---------- saving ---------- */
+function toggleSave(id){
+  var i=state.saved.indexOf(id);
+  if(i>-1)state.saved.splice(i,1);else state.saved.push(id);
+  lsSet("kumo.list",JSON.stringify(state.saved));
+  var s=isSaved(id);
+  document.querySelectorAll('[data-save="'+id+'"]').forEach(function(b){
+    b.setAttribute("aria-pressed",String(s));
+    if(b.getAttribute("data-wide")){b.innerHTML=ic(s?'check':'plus')+'<span>'+(s?'In My List':'Add to My List')+'</span>';}
+    else{b.innerHTML=ic(s?'check':'plus');b.setAttribute("aria-label",s?'In My List':'Add to My List');}
+  });
+  if(state.view==="mylist"&&document.getElementById("scrim").hidden)render();
+}
+
+/* ---------- routing ---------- */
+var VIEWS=["home","kdrama","anime","mylist","search"];
+function fromHash(){
+  var h=(location.hash||"").replace("#","");
+  var v=VIEWS.indexOf(h)>-1?h:"home";
+  if(v!==state.view){state.view=v;state.chip="all";}
+  render();window.scrollTo(0,0);
+}
+function nav(v){
+  if(location.hash==="#"+v){fromHash();}else{location.hash=v;}
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-open],[data-save],[data-tab],[data-chip],[data-age],[data-close],[data-dot],#btn-search,#scrim");
+  if(!el)return;
+  if(el.id==="scrim"){if(e.target===el)closeSheet();return;}
+  if(el.hasAttribute("data-close")){closeSheet();return;}
+  if(el.hasAttribute("data-save")){toggleSave(el.getAttribute("data-save"));return;}
+  if(el.hasAttribute("data-open")){detail(el.getAttribute("data-open"));return;}
+  if(el.hasAttribute("data-tab")){nav(el.getAttribute("data-tab"));return;}
+  if(el.hasAttribute("data-chip")){state.chip=el.getAttribute("data-chip");render();return;}
+  if(el.hasAttribute("data-age")){state.age=+el.getAttribute("data-age");lsSet("kumo.age",String(state.age));render();return;}
+  if(el.hasAttribute("data-dot")){go(+el.getAttribute("data-dot"));startTimer();return;}
+  if(el.id==="btn-search"){nav("search");return;}
+});
+document.addEventListener("input",function(e){
+  if(e.target&&e.target.id==="q"){state.q=e.target.value;results();}
+});
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&!document.getElementById("scrim").hidden)closeSheet();
+});
+window.addEventListener("hashchange",fromHash);
+fromHash();
+})();
+</script>

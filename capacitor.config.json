@@ -1,0 +1,11 @@
+{
+  "appId": "com.kumo.watch",
+  "appName": "Kumo",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "backgroundColor": "#6C3BAA"
+  }
+}
