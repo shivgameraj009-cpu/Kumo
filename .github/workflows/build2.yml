@@ -1,0 +1,32 @@
+name: Build Kumo APK v2
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Build debug APK
+        run: |
+          mkdir -p www assets
+          page=$(ls index.html kumo-app-*.html 2>/dev/null | sort -V | tail -n 1)
+          echo "Using page: $page"
+          cp "$page" www/index.html
+          npm install
+          npm install --no-save sharp
+          f=$(ls IMG_* | head -n 1)
+          cat > icons.js <<'JS'
+          const sharp = require('sharp');
+          const src = process.argv[2];
+          (async () => {
+            await sharp(src).resize(1024, 1024, { fit: 'cover' }).png().toFile('assets/icon-only.png');
+            const fg = await sharp(src).resize(680, 680, { fit: 'cover' }).png().toBuffer();
+            await sharp({ create: { width: 10
