@@ -1,0 +1,55 @@
+name: Build Kumo APK v3
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Prepare app files
+        run: |
+          mkdir -p www assets
+          page=$(ls index.html kumo-app-*.html 2>/dev/null | sort -V | tail -n 1)
+          echo "Using page: $page"
+          cp "$page" www/index.html
+      - name: Install packages
+        run: |
+          npm install
+          npm install --no-save sharp
+      - name: Make app icon
+        run: |
+          f=$(ls IMG_* | head -n 1)
+          echo "Using logo: $f"
+          node -e "require('sharp')(process.argv[1]).resize(1024,1024,{fit:'cover'}).png().toFile('assets/icon-only.png')" "$f"
+          node -e "require('sharp')(process.argv[1]).resize(680,680,{fit:'cover'}).extend({top:172,bottom:172,left:172,right:172,background:{r:0,g:0,b:0,alpha:0}}).png().toFile('assets/icon-foreground.png')" "$f"
+          node -e "require('sharp')({create:{width:1024,height:1024,channels:3,background:'#6B3DA0'}}).png().toFile('assets/icon-background.png')"
+          ls -la assets
+      - name: Build debug APK
+        run: |
+          npx cap add android
+          npm run icons
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          ls -la app/build/outputs/apk/debug
+      - name: Check APK exists
+        run: test -f android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kumo-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kumo-${{ github.run_number }}
+          name: Kumo build ${{ github.run_number }}
+          files: android/app/build/outputs/apk/debug/app-debug.apk
